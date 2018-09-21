@@ -247,6 +247,7 @@ def evaluate(parameters, f_eval, raw_sentences, parsed_sentences,
     count = np.zeros((n_tags, n_tags), dtype=np.int32)
 
     for raw_sentence, data in zip(raw_sentences, parsed_sentences):
+        
         input = create_input(data, parameters, False)
         if parameters['crf']:
             y_preds = np.array(f_eval(*input))[1:-1]

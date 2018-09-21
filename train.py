@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import time
 import numpy as np
 import optparse
 import itertools
@@ -81,6 +82,10 @@ optparser.add_option(
     type='int', help="Use CRF (0 to disable)"
 )
 optparser.add_option(
+    "-n", "--name", default=None,
+    help="Name of output model file"
+)
+optparser.add_option(
     "-D", "--dropout", default="0.5",
     type='float', help="Droupout on the input (0 = no dropout)"
 )
@@ -111,6 +116,11 @@ parameters['cap_dim'] = opts.cap_dim
 parameters['crf'] = opts.crf == 1
 parameters['dropout'] = opts.dropout
 parameters['lr_method'] = opts.lr_method
+parameters['name'] = opts.name
+
+print parameters
+print parameters['pre_emb']
+print os.path.isfile(parameters['pre_emb'])
 
 # Check parameters validity
 assert os.path.isfile(opts.train)
@@ -198,9 +208,10 @@ if opts.reload:
 #
 # Train network
 #
+start = time.time()
 singletons = set([word_to_id[k] for k, v
                   in dico_words_train.items() if v == 1])
-n_epochs = 100  # number of epochs over the training set
+n_epochs = 50  # number of epochs over the training set
 freq_eval = 1000  # evaluate on dev every freq_eval steps
 best_dev = -np.inf
 best_test = -np.inf
@@ -231,3 +242,5 @@ for epoch in xrange(n_epochs):
                 best_test = test_score
                 print "New best score on test."
     print "Epoch %i done. Average cost: %f" % (epoch, np.mean(epoch_costs))
+    
+print '---- Finished training in: %.4fm ----' % ((time.time() - start)/60)

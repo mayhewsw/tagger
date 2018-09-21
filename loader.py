@@ -3,6 +3,7 @@ import re
 import codecs
 from utils import create_dico, create_mapping, zero_digits
 from utils import iob2, iob_iobes
+from collections import defaultdict
 
 
 def load_sentences(path, lower, zeros):
@@ -74,6 +75,8 @@ def char_mapping(sentences):
     chars = ["".join([w[0] for w in s]) for s in sentences]
     dico = create_dico(chars)
     char_to_id, id_to_char = create_mapping(dico)
+    # SWM: replace unseen characters with special symbol (hopefully seen in training)
+    char_to_id = defaultdict(lambda:0,char_to_id)
     print "Found %i unique characters" % len(dico)
     return dico, char_to_id, id_to_char
 
@@ -139,7 +142,9 @@ def prepare_dataset(sentences, word_to_id, char_to_id, tag_to_id, lower=False):
         words = [word_to_id[f(w) if f(w) in word_to_id else '<UNK>']
                  for w in str_words]
         # Skip characters that are not in the training set
-        chars = [[char_to_id[c] for c in w if c in char_to_id]
+        # SWM edit: don't skip, but replace with a known symbol. char_to_id is a defaultdict, so
+        # all entries will be present
+        chars = [[char_to_id[c] for c in w]
                  for w in str_words]
         caps = [cap_feature(w) for w in str_words]
         tags = [tag_to_id[w[-1]] for w in s]
@@ -166,7 +171,7 @@ def augment_with_pretrained(dictionary, ext_emb_path, words):
     # Load pretrained embeddings from file
     pretrained = set([
         line.rstrip().split()[0].strip()
-        for line in codecs.open(ext_emb_path, 'r', 'utf-8')
+        for line in codecs.open(ext_emb_path, 'r', 'utf-8', errors="replace")
         if len(ext_emb_path) > 0
     ])
 

@@ -25,7 +25,11 @@ class Model(object):
             assert parameters and models_path
             # Create a name based on the parameters
             self.parameters = parameters
-            self.name = get_name(parameters)
+            if parameters["name"]:
+                self.name = parameters["name"]
+            else:
+                self.name = get_name(parameters)
+                
             # Model location
             model_path = os.path.join(models_path, self.name)
             self.model_path = model_path
@@ -166,7 +170,7 @@ class Model(object):
                 print 'Loading pretrained embeddings from %s...' % pre_emb
                 pretrained = {}
                 emb_invalid = 0
-                for i, line in enumerate(codecs.open(pre_emb, 'r', 'utf-8')):
+                for i, line in enumerate(codecs.open(pre_emb, 'r', 'utf-8', errors="replace")):
                     line = line.rstrip().split()
                     if len(line) == word_dim + 1:
                         pretrained[line[0]] = np.array(
